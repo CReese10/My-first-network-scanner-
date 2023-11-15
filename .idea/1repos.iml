@@ -1,0 +1,31 @@
+import socket
+
+# Function to scan a single port on an IP address
+def scan_port(target_ip, port):
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        sock.connect((target_ip, port))
+        print(f"Port {port} is open on {target_ip}")
+        sock.close()
+    except socket.error:
+        pass  # Port is closed or unreachable
+
+# Function to check for insecure HTTP on port 80
+def check_http(target_ip):
+    try:
+        http_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        http_sock.settimeout(1)
+        http_sock.connect((target_ip, 80))
+        http_sock.send(b'GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
+        response = http_sock.recv(1024)
+        if b"Server: Microsoft-IIS" in response:
+            print(f"Insecure HTTP (port 80) detected on {target_ip} (IIS server)")
+        elif b"Server: Apache" in response:
+            print(f"Insecure HTTP (port 80) detected on {target_ip} (Apache server)")
+        http_sock.close()
+    except socket.error:
+        pass  # Port is closed or unreachable
+
+# Function to scan a range of IP addresses for default vulnerable ports and user-defined ports
+def scan_ip_range(start_ip, end_ip, vulnerable_ports, additional_ports):
